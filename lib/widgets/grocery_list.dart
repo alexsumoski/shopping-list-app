@@ -31,7 +31,9 @@ class _GroceryListState extends State<GroceryList> {
     final response = await http.get(url);
 
     if (response.statusCode >= 400) {
-      _error = 'Failed to fetch data';
+      setState(() {
+        _error = 'Failed to fetch data';
+      });
     }
 
     final Map<String, dynamic> listData = json.decode(response.body);
@@ -72,10 +74,23 @@ class _GroceryListState extends State<GroceryList> {
     });
   }
 
-  void _removeItem(GroceryItem item) {
+  void _removeItem(GroceryItem item) async {
+    final index = _groceryItems.indexOf(item);
     setState(() {
       _groceryItems.remove(item);
     });
+
+    final url = Uri.https(
+        'flutter-shopping-list-d947e-default-rtdb.firebaseio.com',
+        'shopping-list/${item.id}.json');
+
+    final response = await http.delete(url);
+
+    if (response.statusCode >= 400) {
+      setState(() {
+        _groceryItems.insert(index, item);
+      });
+    }
   }
 
   @override
